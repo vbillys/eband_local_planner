@@ -166,6 +166,9 @@ PLUGINLIB_DECLARE_CLASS(eband_local_planner, EBandPlannerROS, eband_local_planne
       // set plan - as this is fresh from the global planner robot pose should be identical to start frame
       if(!eband_->setPlan(transformed_plan_))
       {
+	ROS_WARN("RETURNING FALSE!!!");
+	return false;
+	//ROS_WARN("TRYING ONCE AGAIN!");
         // We've had some difficulty where the global planner keeps returning a valid path that runs through an obstacle
         // in the local costmap. See issue #5. Here we clear the local costmap and try one more time.
         costmap_ros_->resetLayers();
