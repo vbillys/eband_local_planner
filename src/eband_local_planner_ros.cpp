@@ -55,7 +55,7 @@ PLUGINLIB_DECLARE_CLASS(eband_local_planner, EBandPlannerROS, eband_local_planne
 
 
     EBandPlannerROS::EBandPlannerROS(std::string name, tf::TransformListener* tf, costmap_2d::Costmap2DROS* costmap_ros)
-      : costmap_ros_(NULL), tf_(NULL), initialized_(false)
+      : costmap_ros_(NULL), tf_(NULL), initialized_(false), plan_correct_(false)
     {
       // initialize planner
       initialize(name, tf, costmap_ros);
@@ -164,10 +164,12 @@ PLUGINLIB_DECLARE_CLASS(eband_local_planner, EBandPlannerROS, eband_local_planne
       }
 
       // set plan - as this is fresh from the global planner robot pose should be identical to start frame
+      plan_correct_ = false;
       if(!eband_->setPlan(transformed_plan_))
       {
-	ROS_WARN("RETURNING FALSE!!!");
-	return false;
+	ROS_WARN("RETURNING TRUE!!!");
+        plan_correct_ = false;
+	return true;
 	//ROS_WARN("TRYING ONCE AGAIN!");
         // We've had some difficulty where the global planner keeps returning a valid path that runs through an obstacle
         // in the local costmap. See issue #5. Here we clear the local costmap and try one more time.
@@ -205,6 +207,13 @@ PLUGINLIB_DECLARE_CLASS(eband_local_planner, EBandPlannerROS, eband_local_planne
       {
         ROS_ERROR("This planner has not been initialized, please call initialize() before using this planner");
         return false;
+      }
+
+      // check if setPlan before was correctly executed
+      if (!plan_correct_)
+      {
+          ROS_WARN("plan is not correct, please redo!");
+          return false;
       }
 
       // instantiate local variables
